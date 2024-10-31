@@ -130,7 +130,7 @@ resource "aws_instance" "dharan_nginx_instance" {
   vpc_security_group_ids = [aws_security_group.dharan_nginx_sg.id]
   subnet_id              = aws_subnet.dharan_main_subnet.id
 
-  user_data = file("${path.module}/nginx-setup.sh")
+  user_data = file("./nginx-setup.sh")
 
   tags = {
     Name = "dharan-nginx-instance"
