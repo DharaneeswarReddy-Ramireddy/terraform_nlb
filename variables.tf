@@ -7,7 +7,7 @@ variable "region" {
 variable "instance_type" {
   description = "The instance type for EC2"
   type        = string
-  default     = "t2.micro"
+  default     = "t3.micro"
 }
 
 variable "ami_id" {
