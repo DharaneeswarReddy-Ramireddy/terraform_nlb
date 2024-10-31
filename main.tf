@@ -49,50 +49,6 @@ resource "aws_route_table_association" "dharan_main_rta" {
   route_table_id = aws_route_table.dharan_main_route_table.id
 }
 
-# Create Network ACL
-resource "aws_network_acl" "dharan_main_nacl" {
-  vpc_id = aws_vpc.dharan_main_vpc.id
-
-  # Inbound rules
-  ingress {
-    rule_no    = 100
-    protocol   = "tcp"
-    action     = "allow"
-    cidr_block = "0.0.0.0/0"
-    from_port  = 80
-    to_port    = 80
-  }
-
-  ingress {
-    rule_no    = 110
-    protocol   = "tcp"
-    action     = "allow"
-    cidr_block = "0.0.0.0/0"
-    from_port  = 22
-    to_port    = 22
-  }
-
-  # Outbound rules
-  egress {
-    rule_no    = 100
-    protocol   = "-1"
-    action     = "allow"
-    cidr_block = "0.0.0.0/0"
-    from_port  = 0
-    to_port    = 0
-  }
-
-  tags = {
-    Name = "dharan-main-nacl"
-  }
-}
-
-# Associate NACL with Subnet
-resource "aws_network_acl_association" "dharan_main_nacl_association" {
-  subnet_id     = aws_subnet.dharan_main_subnet.id
-  network_acl_id = aws_network_acl.dharan_main_nacl.id
-}
-
 # Create Security Group for Nginx and SSH
 resource "aws_security_group" "dharan_nginx_sg" {
   name        = "dharan-nginx-sg"
@@ -130,7 +86,7 @@ resource "aws_instance" "dharan_nginx_instance" {
   vpc_security_group_ids = [aws_security_group.dharan_nginx_sg.id]
   subnet_id              = aws_subnet.dharan_main_subnet.id
 
-  user_data = file("./nginx-setup.sh")
+  user_data = file("${path.module}/nginx-setup.sh")
 
   tags = {
     Name = "dharan-nginx-instance"
@@ -155,12 +111,12 @@ resource "aws_lb_target_group" "dharan_nginx_tg" {
   vpc_id   = aws_vpc.dharan_main_vpc.id
 
   health_check {
-  protocol            = "TCP"
-  interval            = 30
-  timeout             = 5
-  healthy_threshold   = 5
-  unhealthy_threshold = 2
-}
+    protocol            = "TCP"
+    interval            = 30
+    timeout             = 5
+    healthy_threshold   = 5
+    unhealthy_threshold = 2
+  }
 }
 
 # Register Target with Target Group
