@@ -96,7 +96,7 @@ resource "aws_network_acl_association" "dharan_main_nacl_association" {
 # Create Security Group for Nginx and SSH
 resource "aws_security_group" "dharan_nginx_sg" {
   name        = "dharan-nginx-sg"
-  description = "Allow HTTP, HTTPS, and SSH traffic"
+  description = "Allow HTTP and SSH traffic"
   vpc_id      = aws_vpc.dharan_main_vpc.id
 
   # Allow HTTP traffic
@@ -112,7 +112,7 @@ resource "aws_security_group" "dharan_nginx_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]  # Open to all IPs; you may want to restrict this for better security
+    cidr_blocks = ["0.0.0.0/0"] 
   }
 
   egress {
@@ -125,10 +125,10 @@ resource "aws_security_group" "dharan_nginx_sg" {
 
 # Launch EC2 Instance
 resource "aws_instance" "dharan_nginx_instance" {
-  ami           = var.ami_id
-  instance_type = var.instance_type
-  security_groups = [aws_security_group.dharan_nginx_sg.name]
-  subnet_id     = aws_subnet.dharan_main_subnet.id
+  ami                    = var.ami_id
+  instance_type          = var.instance_type
+  vpc_security_group_ids = [aws_security_group.dharan_nginx_sg.id]
+  subnet_id              = aws_subnet.dharan_main_subnet.id
 
   user_data = file("${path.module}/nginx-setup.sh")
 
@@ -151,7 +151,7 @@ resource "aws_lb" "dharan_nlb" {
 resource "aws_lb_target_group" "dharan_nginx_tg" {
   name     = "dharan-nginx-tg"
   port     = 80
-  protocol = "HTTP"
+  protocol = "TCP"
   vpc_id   = aws_vpc.dharan_main_vpc.id
 
   health_check {
@@ -175,7 +175,7 @@ resource "aws_lb_target_group_attachment" "dharan_nginx_attachment" {
 resource "aws_lb_listener" "dharan_http_listener" {
   load_balancer_arn = aws_lb.dharan_nlb.arn
   port              = 80
-  protocol          = "HTTP"
+  protocol          = "TCP" 
 
   default_action {
     type             = "forward"
@@ -186,7 +186,7 @@ resource "aws_lb_listener" "dharan_http_listener" {
 # Route53 Record for Subdomain
 resource "aws_route53_record" "dharan_nginx_subdomain_record" {
   zone_id = var.zone_id
-  name    = "dharan-nginx.${var.domain_name}"  # This creates a subdomain like nginx.example.com
+  name    = "dharan-nginx.${var.domain_name}"
   type    = "A"
   alias {
     name                   = aws_lb.dharan_nlb.dns_name
