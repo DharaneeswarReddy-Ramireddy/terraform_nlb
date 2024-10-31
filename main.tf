@@ -155,13 +155,12 @@ resource "aws_lb_target_group" "dharan_nginx_tg" {
   vpc_id   = aws_vpc.dharan_main_vpc.id
 
   health_check {
-    path                = "/"
-    interval            = 30
-    timeout             = 5
-    healthy_threshold   = 5
-    unhealthy_threshold = 2
-    matcher             = "200"
-  }
+  protocol            = "TCP"
+  interval            = 30
+  timeout             = 5
+  healthy_threshold   = 5
+  unhealthy_threshold = 2
+}
 }
 
 # Register Target with Target Group
